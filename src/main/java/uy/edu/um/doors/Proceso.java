@@ -1,3 +1,6 @@
+package uy.edu.um.doors;
+import uy.edu.um.tad.list.MyList;
+
 public class Proceso{
     private int PID;
     private String nombre;
@@ -51,7 +54,41 @@ public class Proceso{
 
     //calcular prioridad:
     public int calcularPrioridad(){
-        return;
-        //COMPLETAR CODIGO.
+        int nCPU = 0;
+        int nRAM = 0;
+        int nDISK = 0;
+        int nTotal = 0;
+
+        Node<Evento> actual = this.getEventos().getFirst();
+
+        while (actual!=null){
+            Evento evento = actual.getValue();
+
+            if (evento.getTipo() == TipoEvento.CPU){
+                nCPU++;
+            } else if (evento.getTipo() == TipoEvento.RAM){
+                nRAM++;
+            } else if (evento.getTipo() == TipoEvento.DISK){
+                nDISK++;
+            }
+
+            actual = actual.getNext();
+        }
+
+        int nEventos = this.getEventos().size();
+        if (nEventos == 0){
+            return 0;
+        }
+
+        int WUser = 16;
+        if (this.getUsuario().getTipo() == UserType.ADMIN){
+            WUser = 32;
+        }
+
+        double izq = ((8 * nCPU) + (2 * nRAM) + (2 * nDISK)) / (double) nEventos;
+        double der = WUser * nEventos;
+
+        return (int) izq + der;
+
     }
 }

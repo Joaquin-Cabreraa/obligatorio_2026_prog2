@@ -1,3 +1,6 @@
+package uy.edu.um.doors;
+import uy.edu.um.tad.list.Mylist;
+
 public class Evento{
     private TipoEvento tipo;
     private MyList<String> instrucciones;

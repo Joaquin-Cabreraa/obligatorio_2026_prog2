@@ -1,11 +1,11 @@
 package uy.edu.um.doors;
 
-public class Usuarios {
+public class Usuario {
     private int uid;
     private String alias;
     private UserType type;
 
-    public Usuarios(int uid, String alias, UserType type){
+    public Usuario(int uid, String alias, UserType type){
         this.uid = uid;
         this.alias = alias;
         this.type = type;
