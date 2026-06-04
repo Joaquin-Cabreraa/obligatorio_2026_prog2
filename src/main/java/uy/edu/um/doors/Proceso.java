@@ -1,12 +1,20 @@
 package uy.edu.um.doors;
+import lombok.Getter;
 import uy.edu.um.tad.list.MyList;
+import uy.edu.um.tad.list.Node;
 
-public class Proceso{
+public class Proceso implements Comparable<Proceso>{
+    //getters:
+    @Getter
     private int PID;
+    @Getter
     private String nombre;
+    @Getter
     private Usuario usuario;
+    @Getter
     private int prioridad;
     private EstadoProceso estado;
+    @Getter
     private MyList<Evento> eventos;
 
     //constructor:
@@ -14,33 +22,12 @@ public class Proceso{
         this.PID = PID;
         this.nombre = nombre;
         this.usuario = usuario;
-        this.EstadoProceso = "NEW";
+        this.EstadoProceso = EstadoProceso.NEW;
         this.prioridad = 0; //se calcula al pasar a PENDING con pprepare
-    }
-
-    //getters:
-    public int getPID(){
-        return this.PID;
-    }
-
-    public String getNombre(){
-        return this.nombre;
-    }
-
-    public Usuario getUsuario(){
-        return this.usuario;
-    }
-
-    public int getPrioridad(){
-        return this.prioridad;
     }
 
     public EstadoProceso getEstado(){
         return this.EstadoProceso;
-    }
-
-    public MyList<Evento> getEventos(){
-        return this.eventos;
     }
 
     //setters:
@@ -81,14 +68,18 @@ public class Proceso{
         }
 
         int WUser = 16;
-        if (this.getUsuario().getTipo() == UserType.ADMIN){
+        if (this.getUsuario().getType() == UserType.ADMIN){
             WUser = 32;
         }
 
         double izq = ((8 * nCPU) + (2 * nRAM) + (2 * nDISK)) / (double) nEventos;
         double der = WUser * nEventos;
 
-        return (int) izq + der;
+        return (int) (izq + der);
+    }
 
+    @Override
+    public int compareTo(Proceso otro) {
+        return Integer.compare(otro.getPrioridad(), this.getPrioridad());
     }
 }
