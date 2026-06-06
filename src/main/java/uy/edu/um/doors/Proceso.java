@@ -3,18 +3,14 @@ import lombok.Getter;
 import uy.edu.um.tad.list.MyList;
 import uy.edu.um.tad.list.Node;
 
+@Getter
 public class Proceso implements Comparable<Proceso>{
     //getters:
-    @Getter
     private int PID;
-    @Getter
     private String nombre;
-    @Getter
     private Usuario usuario;
-    @Getter
     private int prioridad;
     private EstadoProceso estado;
-    @Getter
     private MyList<Evento> eventos;
 
     //constructor:
@@ -22,12 +18,8 @@ public class Proceso implements Comparable<Proceso>{
         this.PID = PID;
         this.nombre = nombre;
         this.usuario = usuario;
-        this.EstadoProceso = EstadoProceso.NEW;
+        this.estado = EstadoProceso.NEW;
         this.prioridad = 0; //se calcula al pasar a PENDING con pprepare
-    }
-
-    public EstadoProceso getEstado(){
-        return this.EstadoProceso;
     }
 
     //setters:
@@ -36,7 +28,7 @@ public class Proceso implements Comparable<Proceso>{
     }
 
     public void setEstado(EstadoProceso e){
-        this.EstadoProceso = e;
+        this.estado = e;
     }
 
     //calcular prioridad:

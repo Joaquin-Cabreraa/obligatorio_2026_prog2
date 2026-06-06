@@ -2,10 +2,13 @@ package uy.edu.um.doors;
 
 import uy.edu.um.tad.hash.MyHash;
 import uy.edu.um.tad.hash.MyHashImpl;
+import uy.edu.um.tad.heap.EmptyHeapException;
 import uy.edu.um.tad.heap.MyHeap;
 import uy.edu.um.tad.heap.MyHeapImpl;
+import uy.edu.um.tad.list.MyList;
 import uy.edu.um.tad.queue.MyQueue;
 import uy.edu.um.tad.queue.MyQueueImpl;
+import uy.edu.um.tad.stack.EmptyStackException;
 import uy.edu.um.tad.stack.MyStack;
 import uy.edu.um.tad.stack.MyStackImpl;
 
@@ -19,7 +22,7 @@ public class ProcessManagerImpl implements ProcessManager{
     private MyHash<Integer,Usuario> usuarios;
 
     public ProcessManagerImpl(){
-        this.procesosNuevos = new MyQueueImpl<>();
+        this.procesosNew = new MyQueueImpl<>();
         this.procesosPending = new MyHeapImpl<>(false);
         this.procesoEnEjecucion = null;
         this.procesosFinished = new MyStackImpl<>();
@@ -62,41 +65,109 @@ public class ProcessManagerImpl implements ProcessManager{
 
         //Mostrar el EXECUTING
         System.out.println("EXECUTING:");
-        Proceso p = procesoEnEjecucion;
+        Proceso proceso = procesoEnEjecucion;
         System.out.print("        ");
-        System.out.println("PID=" + p.getPID() + " | " + p.getNombre() + " | " + "USER:" + p.getUsuario().getType() + " " + p.getUsuario().getUid() + " | " + "P=" + p.getPrioridad());
+        System.out.println("PID=" + proceso.getPID() + " | " + proceso.getNombre() + " | " + "USER:" + proceso.getUsuario().getAlias() + " UID:" + proceso.getUsuario().getUid() + " | " + "P=" + proceso.getPrioridad());
 
         //Mostrar el heap de PENDING
         System.out.println("PENDING:");
-            //HACER UN HEAP AUXILIAR QUE SEA UNA COPIA DEL PRIMERO, Y TRABAJAR CON ESO. PARA ASÍ NO MODIFICO EL HEAP ORIGINAL
-        MyHeap<Proceso> aux = new MyHeapImpl<>(false);
-        while(!procesosPending.isEmpty()){
-            Proceso p = procesosPending.remove();
-            System.out.println("PID=" + p.getPID() + " | " + p.getNombre() + " | USER:" + p.getUsuario().getAlias() + " UID:" + p.getUsuario().getUid() + " | P=" + p.getPrioridad());
-            aux.insert(p);
-
-            while(!aux.isEmpty()){
-                procesosPending.insert(aux.remove());
+        MyHeap<Proceso> heapAux = new MyHeapImpl<>(false);
+        try {
+            while(!procesosPending.isEmpty()){
+                Proceso p = procesosPending.remove();
+                System.out.print("        ");
+                System.out.println("PID=" + p.getPID() + " | " + p.getNombre() + " | USER:" + p.getUsuario().getAlias() + " UID:" + p.getUsuario().getUid() + " | " + "P=" + p.getPrioridad());
+                heapAux.insert(p);
             }
+            while(!heapAux.isEmpty()){
+                procesosPending.insert(heapAux.remove());
+            }
+        } catch (EmptyHeapException e) {
+            System.out.println("Error al recorrer pending: " + e.getMessage());
         }
 
         //Mostrar el stack de FINISHED
-        MyStack<Proceso> aux = new MyStackImpl<>();
+        MyStack<Proceso> stackAux = new MyStackImpl<>();
         System.out.println("FINISHED:");
-        while(!procesosFinished.isEmpty()){
-            Proceso p = procesosFinished.pop();
-            System.out.print("      ");
-            System.out.println("PID=" + p.getPID() + " " + p.getNombre() + " | STATE: " + p.getEstado() + " | USER:" + p.getUsuario().getAlias() + " UID:" + p.getUsuario().getUid());
-            aux.push(p);
-        }
-        while(!aux.isEmpty()){
-            procesosFinished.push(aux.pop());
+        try {
+            while(!procesosFinished.isEmpty()){
+                Proceso p = procesosFinished.pop();
+                System.out.print("      ");
+                System.out.println("PID=" + p.getPID() + " | " + p.getNombre() + " | " + "STATE: " + p.getEstado() + " | " + "USER:" + p.getUsuario().getAlias() + " UID:" + p.getUsuario().getUid());
+                stackAux.push(p);
+            }
+            while(!stackAux.isEmpty()){
+                procesosFinished.push(stackAux.pop());
+            }
+        } catch (EmptyStackException e) {
+            System.out.println("Error al recorrer finished: " + e.getMessage());
         }
     }
 
     @Override
     public void printStatusVerbose() {
-        System.out.println("IMPLEMENTAR");
+        System.out.println("PROCESS STATUS");
+
+        // EXECUTING
+        System.out.println("EXECUTING:");
+        Proceso p = procesoEnEjecucion;
+        System.out.print("        ");
+        System.out.println("PID=" + p.getPID() + " | " + p.getNombre() + " | " + "USER:" + p.getUsuario().getAlias() + " UID:" + p.getUsuario().getUid() + " | " + "P=" + p.getPrioridad());
+        printEventos(p);
+
+        // PENDING
+        System.out.println("PENDING:");
+        MyHeap<Proceso> heapAux = new MyHeapImpl<>(false);
+        try {
+            while(!procesosPending.isEmpty()){
+                Proceso proc = procesosPending.remove();
+                System.out.print("        ");
+                System.out.println("PID=" + proc.getPID() + " | " + proc.getNombre() + " | USER:" + proc.getUsuario().getAlias() + " UID:" + proc.getUsuario().getUid() + " | " + "P=" + proc.getPrioridad());
+                printEventos(proc);
+                heapAux.insert(proc);
+            }
+            while(!heapAux.isEmpty()){
+                procesosPending.insert(heapAux.remove());
+            }
+        } catch (EmptyHeapException e) {
+            System.out.println("Error al recorrer pending: " + e.getMessage());
+        }
+
+        // FINISHED
+        MyStack<Proceso> stackAux = new MyStackImpl<>();
+        System.out.println("FINISHED:");
+        try {
+            while(!procesosFinished.isEmpty()){
+                Proceso proc = procesosFinished.pop();
+                System.out.print("        ");
+                System.out.println("PID=" + proc.getPID() + " | " + proc.getNombre() + " | " + "STATE: " + proc.getEstado() + " | " + "USER:" + proc.getUsuario().getAlias() + " UID:" + proc.getUsuario().getUid());
+                printEventos(proc);
+                stackAux.push(proc);
+            }
+            while(!stackAux.isEmpty()){
+                procesosFinished.push(stackAux.pop());
+            }
+        } catch (EmptyStackException e) {
+            System.out.println("Error al recorrer finished: " + e.getMessage());
+        }
+    }
+
+    private void printEventos(Proceso p) {
+        MyList<Evento> eventos = p.getEventos();
+        for (int i = 0; i < eventos.size(); i++) {
+            Evento e = eventos.get(i);
+            //PREGUNTAR SI SE PUEDE USAR STRING BUILDER
+            StringBuilder instrucciones = new StringBuilder("[");
+            MyList<String> instr = e.getInstrucciones();
+            for (int j = 0; j < instr.size(); j++) {
+                instrucciones.append(instr.get(j));
+                if (j < instr.size() - 1) {
+                    instrucciones.append(", ");
+                }
+            }
+            instrucciones.append("]");
+            System.out.println("        EVENT: " + e.getTipo() + " | Instructions " + instrucciones);
+        }
     }
 
     @Override
