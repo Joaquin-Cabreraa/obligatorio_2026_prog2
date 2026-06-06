@@ -1,53 +1,38 @@
-public class Proceso{
-    private int PID;
-    private String nombre;
-    private Usuario usuario;
-    private int prioridad;
-    private EstadoProceso estado;
-    private MyList<Evento> eventos;
+package uy.edu.um.doors;
 
-    //constructor:
-    public Proceso(int PID, String nombre, Usuario usuario, MyList<Evento> eventos){
-        this.PID = PID;
-        this.nombre = nombre;
-        this.usuario = usuario;
-        this.EstadoProceso = "NEW";
-        this.prioridad = 0; //se calcula al pasar a PENDING con pprepare
-    }
+import uy.edu.um.tad.list.MyLinkedListImpl;
+import uy.edu.um.tad.list.MyList;
 
-    //getters:
-    public int getPID(){
-        return this.PID;
-    }
+public class Proceso {
+        private int PID;
+        private String nombre;
+        private Usuario usuario;
+        private int prioridad;
+        private EstadoProceso estado;
+        private MyList<Evento> eventos;
 
-    public String getNombre(){
-        return this.nombre;
-    }
+        public Proceso(int PID, String nombre, Usuario usuario) {
+            this.PID = PID;
+            this.nombre = nombre;
+            this.usuario = usuario;
+            this.estado = EstadoProceso.NEW;
+            this.prioridad = 0;
+            this.eventos = new MyLinkedListImpl<>();
+        }
 
-    public Usuario getUsuario(){
-        return this.usuario;
-    }
+        public int getPID() { return this.PID; }
+        public String getNombre() { return this.nombre; }
+        public Usuario getUsuario() { return this.usuario; }
+        public int getPrioridad() { return this.prioridad; }
+        public EstadoProceso getEstado() { return this.estado; }
+        public MyList<Evento> getEventos() { return this.eventos; }
 
-    public int getPrioridad(){
-        return this.prioridad;
-    }
+        public void setPrioridad(int p) { this.prioridad = p; }
+        public void setEstado(EstadoProceso e) { this.estado = e; }
 
-    public EstadoProceso getEstado(){
-        return this.EstadoProceso;
-    }
-
-    public MyList<Evento> getEventos(){
-        return this.eventos;
-    }
-
-    //setters:
-    public void setPrioridad(int p){
-        this.prioridad = p;
-    }
-
-    public void setEstado(EstadoProceso e){
-        this.EstadoProceso = e;
-    }
+        public void agregarEvento(Evento e) {
+            this.eventos.add(e);
+        }
 
     //calcular prioridad:
     public int calcularPrioridad(){
