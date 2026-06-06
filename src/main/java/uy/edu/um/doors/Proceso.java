@@ -1,4 +1,8 @@
-public class Proceso{
+package uy.edu.um.doors;
+
+import uy.edu.um.tad.list.MyList;
+
+public class Proceso implements Comparable<Proceso>{
     private int PID;
     private String nombre;
     private Usuario usuario;
@@ -11,7 +15,8 @@ public class Proceso{
         this.PID = PID;
         this.nombre = nombre;
         this.usuario = usuario;
-        this.EstadoProceso = "NEW";
+        this.eventos = eventos;
+        this.estado = EstadoProceso.NEW;
         this.prioridad = 0; //se calcula al pasar a PENDING con pprepare
     }
 
@@ -33,7 +38,7 @@ public class Proceso{
     }
 
     public EstadoProceso getEstado(){
-        return this.EstadoProceso;
+        return this.estado;
     }
 
     public MyList<Evento> getEventos(){
@@ -46,12 +51,19 @@ public class Proceso{
     }
 
     public void setEstado(EstadoProceso e){
-        this.EstadoProceso = e;
+        this.estado = e;
     }
 
     //calcular prioridad:
     public int calcularPrioridad(){
-        return;
-        //COMPLETAR CODIGO.
+        // Implementación mínima: devolver la prioridad actual.
+        // Completar según la especificación del TP si es necesario.
+        return this.prioridad;
     }
+    
+    @Override
+    public int compareTo(Proceso other) {
+            return Integer.compare(this.prioridad, other.prioridad);
+        }
 }
+
