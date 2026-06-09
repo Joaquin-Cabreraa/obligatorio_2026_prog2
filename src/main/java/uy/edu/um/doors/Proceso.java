@@ -5,7 +5,6 @@ import uy.edu.um.tad.list.Node;
 
 @Getter
 public class Proceso implements Comparable<Proceso>{
-    //getters:
     private int PID;
     private String nombre;
     private Usuario usuario;
@@ -18,6 +17,7 @@ public class Proceso implements Comparable<Proceso>{
         this.PID = PID;
         this.nombre = nombre;
         this.usuario = usuario;
+        this.eventos = eventos;
         this.estado = EstadoProceso.NEW;
         this.prioridad = 0; //se calcula al pasar a PENDING con pprepare
     }
@@ -74,4 +74,10 @@ public class Proceso implements Comparable<Proceso>{
     public int compareTo(Proceso otro) {
         return Integer.compare(otro.getPrioridad(), this.getPrioridad());
     }
+    
+    @Override
+    public int compareTo(Proceso other) {
+            return Integer.compare(this.prioridad, other.prioridad);
+        }
 }
+
