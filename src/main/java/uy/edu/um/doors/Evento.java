@@ -1,5 +1,4 @@
 package uy.edu.um.doors;
-
 import uy.edu.um.tad.list.MyList;
 
 public class Evento{

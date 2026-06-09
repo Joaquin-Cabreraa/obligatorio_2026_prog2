@@ -1,5 +1,7 @@
 package uy.edu.um.doors;
 
+import uy.edu.um.tad.stack.EmptyStackException;
+
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
@@ -151,7 +153,7 @@ public class ProcessConsole {
         }
     }
 
-    private void handleStatusCommand(String[] parts) {
+    private void handleStatusCommand(String[] parts) throws EmptyStackException {
         if (parts.length == 1) {
             processManager.printStatus();
             return;
