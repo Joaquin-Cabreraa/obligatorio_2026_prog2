@@ -1,7 +1,6 @@
 package uy.edu.um.doors;
 
 import uy.edu.um.tad.queue.EmptyQueueException;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -23,7 +22,9 @@ public class ProcessManagerImpl implements ProcessManager{
     private Proceso procesoEnEjecucion;
     private MyStack<Proceso> procesosFinished;
     private MyHash<Integer, Usuario> usuarios;
-    private MyHash<Integer, Integer> hashPids;
+    private MyHash<Integer, Boolean> hashPids;
+    private static final int MAX_FINISHED = 3;
+
 
     public ProcessManagerImpl() {
         this.procesosNew = new MyQueueImpl<>();
@@ -111,7 +112,7 @@ public class ProcessManagerImpl implements ProcessManager{
                 }
 
                 procesosNew.enqueue(proceso);
-                loadedPids.put(pid, true);
+                hashPids.put(pid, true);
                 System.out.println("Proceso cargado: PID=" + pid + " | " + nombre);
             }
         } catch (IOException e) {
@@ -148,10 +149,10 @@ public class ProcessManagerImpl implements ProcessManager{
 
                     for (int i = 0; i < max_proceso.getEventos().size(); i++) {
                         Evento event = max_proceso.getEventos().get(i);
-                        String instrucciones = "";
+                        StringBuilder instrucciones = new StringBuilder();
                         for (int j = 0; j < event.getInstrucciones().size(); j++) {
-                            if (j > 0) instrucciones += ", ";
-                            instrucciones += event.getInstrucciones().get(j);
+                            if (j > 0) instrucciones.append(", ");
+                            instrucciones.append(event.getInstrucciones().get(j));
                         }
                         writeLog("  EVENT: " + event.getTipo() + " | Instructions [" + instrucciones + "]");
                     }
@@ -160,6 +161,34 @@ public class ProcessManagerImpl implements ProcessManager{
         }
     }
 
+
+    //codigo necesitado para los finish:
+    private void checkStackOverflow() {
+        if (procesosFinished.size() == MAX_FINISHED) {
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            StringBuilder log = new StringBuilder("[" + timestamp + "]: Finished process stack overflow\n");
+
+            // vaciar la pila logueando en orden inverso al de finalización
+            // o sea del fondo al tope, usamos un aux
+            MyStack<Proceso> aux = new MyStackImpl<>();
+            while (!procesosFinished.isEmpty()) {
+                try {
+                    aux.push(procesosFinished.pop());
+                } catch (EmptyStackException e) {
+                    System.out.println("Error: " + e.getMessage());
+                }
+            }
+            while (!aux.isEmpty()) {
+                try {
+                    Proceso p = aux.pop();
+                    log.append("PID=" + p.getPID() + " " + p.getNombre() + " | STATE: " + p.getEstado() + " | USER:" + p.getUsuario().getAlias() + " UID:" + p.getUsuario().getUid() + "\n");
+                } catch (EmptyStackException e) {
+                    System.out.println("Error: " + e.getMessage());
+                }
+            }
+            writeLog(log.toString());
+        }
+    }
     @Override
     public void finishProcessOk() {
         if(procesoEnEjecucion == null){
@@ -167,6 +196,8 @@ public class ProcessManagerImpl implements ProcessManager{
             return;
         }
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        procesoEnEjecucion.setEstado(EstadoProceso.FINISHED);
+        checkStackOverflow();
         procesosFinished.push(procesoEnEjecucion);
         writeLog("[" + timestamp + "]: ENDING PROCESS: PID=" + procesoEnEjecucion.getPID() + " | STATE: OK");
         procesoEnEjecucion = null;
@@ -174,7 +205,16 @@ public class ProcessManagerImpl implements ProcessManager{
 
     @Override
     public void finishProcessError() {
-        System.out.println("IMPLEMENTAR");
+        if(procesoEnEjecucion == null){
+            System.out.printf("No hay proceso en ejecucion");
+            return;
+        }
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        procesoEnEjecucion.setEstado(EstadoProceso.FINISHED);
+        checkStackOverflow();
+        procesosFinished.push(procesoEnEjecucion);
+        writeLog("[" + timestamp + "]: ENDING PROCESS: PID=" + procesoEnEjecucion.getPID() + " | STATE: ERROR");
+        procesoEnEjecucion = null;
     }
 
     @Override
