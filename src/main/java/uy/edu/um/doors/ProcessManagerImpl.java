@@ -1,19 +1,10 @@
 package uy.edu.um.doors;
+
 import uy.edu.um.tad.queue.EmptyQueueException;
-import uy.edu.um.tad.queue.MyQueue;
-import uy.edu.um.tad.queue.MyQueueImpl;
-import uy.edu.um.tad.heap.EmptyHeapException;
-import uy.edu.um.tad.heap.MyHeap;
-import uy.edu.um.tad.heap.MyHeapImpl;
-import uy.edu.um.tad.stack.MyStack;
-import uy.edu.um.tad.stack.MyStackImpl;
-import uy.edu.um.tad.hash.MyHash;
-import uy.edu.um.tad.hash.MyHashImpl;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-
 import uy.edu.um.tad.hash.MyHash;
 import uy.edu.um.tad.hash.MyHashImpl;
 import uy.edu.um.tad.heap.EmptyHeapException;
@@ -32,6 +23,7 @@ public class ProcessManagerImpl implements ProcessManager{
     private Proceso procesoEnEjecucion;
     private MyStack<Proceso> procesosFinished;
     private MyHash<Integer, Usuario> usuarios;
+    private MyHash<Integer, Integer> hashPids;
 
     public ProcessManagerImpl() {
         this.procesosNew = new MyQueueImpl<>();
@@ -41,16 +33,90 @@ public class ProcessManagerImpl implements ProcessManager{
         this.usuarios = new MyHashImpl<>();
     }
 
-    public ProcessManagerImpl(){
-        this.procesosNew = new MyQueueImpl<>();
-        this.procesosPending = new MyHeapImpl<>(false);
-        this.procesoEnEjecucion = null;
-        this.procesosFinished = new MyStackImpl<>();
-        this.usuarios = new MyHashImpl<>();
-    }
     @Override
     public void loadProcessAndUserData(String processCsvPath, String usersCsvPath) {
-        System.out.println("IMPLEMENTAR");
+
+        // 1) Cargar usuarios
+        try (BufferedReader br = new BufferedReader(new FileReader(usersCsvPath))) {
+            String line = br.readLine(); // saltar header
+            while ((line = br.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty()) continue;
+
+                String[] parts = line.split(";");
+                int uid = Integer.parseInt(parts[0].trim());
+                String alias = parts[1].trim();
+                UserType type = UserType.valueOf(parts[2].trim().toUpperCase());
+
+                // Evitar usuarios duplicados
+                if (usuarios.contains(uid)) {
+                    System.out.println("UID " + uid + " duplicado, saltando.");
+                    continue;
+                }
+
+                usuarios.put(uid, new Usuario(uid, alias, type));
+            }
+        } catch (IOException e) {
+            System.out.println("Error leyendo usuarios: " + e.getMessage());
+            return;
+        }
+
+        // 2) Cargar procesos
+        try (BufferedReader br = new BufferedReader(new FileReader(processCsvPath))) {
+            String line = br.readLine(); // saltar header
+            while ((line = br.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty()) continue;
+
+                // Formato: PID;UID;nombre;{eventos}
+                String[] parts = line.split(";", 4);
+                int pid = Integer.parseInt(parts[0].trim());
+                int uid = Integer.parseInt(parts[1].trim());
+                String nombre = parts[2].trim();
+                String eventosRaw = parts[3].trim();
+
+                // Evitar procesos duplicados
+                if (hashPids.contains(pid)) {
+                    System.out.println("PID " + pid + " duplicado, saltando.");
+                    continue;
+                }
+
+                // Buscar usuario dueño
+                Usuario owner = usuarios.get(uid);
+                if (owner == null) {
+                    System.out.println("UID " + uid + " no encontrado, saltando PID " + pid);
+                    continue;
+                }
+
+                Proceso proceso = new Proceso(pid, nombre, owner);
+
+                // Parsear eventos: quitar { y }
+                eventosRaw = eventosRaw.substring(1, eventosRaw.length() - 1);
+                String[] eventTokens = eventosRaw.split("#");
+
+                for (String token : eventTokens) {
+                    token = token.trim();
+                    int bracketOpen  = token.indexOf('[');
+                    int bracketClose = token.indexOf(']');
+                    String tipoPart  = token.substring(0, bracketOpen).replace(":", "").trim();
+                    String instrPart = token.substring(bracketOpen + 1, bracketClose).trim();
+
+                    TipoEvento tipo = TipoEvento.valueOf(tipoPart.toUpperCase());
+                    MyList<String> instrucciones = new MyLinkedListImpl<>();
+                    for (String instr : instrPart.split(",")) {
+                        instrucciones.add(instr.trim());
+                    }
+
+                    proceso.agregarEvento(new Evento(tipo, instrucciones));
+                }
+
+                procesosNew.enqueue(proceso);
+                loadedPids.put(pid, true);
+                System.out.println("Proceso cargado: PID=" + pid + " | " + nombre);
+            }
+        } catch (IOException e) {
+            System.out.println("Error leyendo procesos: " + e.getMessage());
+        }
     }
 
     @Override

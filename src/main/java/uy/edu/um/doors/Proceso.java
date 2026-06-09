@@ -1,4 +1,6 @@
 package uy.edu.um.doors;
+
+import uy.edu.um.tad.list.MyLinkedListImpl;
 import lombok.Getter;
 import uy.edu.um.tad.list.MyList;
 import uy.edu.um.tad.list.Node;
@@ -19,7 +21,8 @@ public class Proceso implements Comparable<Proceso>{
         this.usuario = usuario;
         this.eventos = eventos;
         this.estado = EstadoProceso.NEW;
-        this.prioridad = 0; //se calcula al pasar a PENDING con pprepare
+        this.prioridad = 0;//se calcula al pasar a PENDING con pprepare
+        this.eventos = new MyLinkedListImpl<>();
     }
 
     //setters:
@@ -30,6 +33,10 @@ public class Proceso implements Comparable<Proceso>{
     public void setEstado(EstadoProceso e){
         this.estado = e;
     }
+  
+    public void agregarEvento(Evento e) {
+            this.eventos.add(e);
+        }
 
     //calcular prioridad:
     public int calcularPrioridad(){
@@ -75,9 +82,5 @@ public class Proceso implements Comparable<Proceso>{
         return Integer.compare(otro.getPrioridad(), this.getPrioridad());
     }
     
-    @Override
-    public int compareTo(Proceso other) {
-            return Integer.compare(this.prioridad, other.prioridad);
-        }
 }
 
