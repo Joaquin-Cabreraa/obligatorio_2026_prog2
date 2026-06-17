@@ -132,35 +132,37 @@ public class ProcessManagerImpl implements ProcessManager{
                 Proceso p = procesosNew.dequeue();
                 int prioridad = p.calcularPrioridad();
                 p.setPrioridad(prioridad);
+                p.setEstado(EstadoProceso.PENDING);
                 procesosPending.insert(p);
                 writeLog("[" + timestamp + "]: " + "NEW PENDING PROCESS: PID=" + p.getPID() + " | " + p.getNombre() + " | USER:" + p.getUsuario().getAlias() + " UID:" + p.getUsuario().getUid() + " | P=" + p.calcularPrioridad());
             } catch(EmptyQueueException e) {}
         }
-
-        
     }
 
     @Override
     public void executeNextProcess() {
-        while (!procesosPending.isEmpty()) {
+        if (procesoEnEjecucion != null) {
+            System.out.println("Ya hay un proceso en ejecucion: PID=" + procesoEnEjecucion.getPID());
+        } else if (procesosPending.isEmpty()) {
+            System.out.println("No hay procesos pendientes");
+        } else {
             try {
-                if (procesoEnEjecucion == null) {
-                    String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-                    Proceso max_proceso = procesosPending.remove();
-                    procesoEnEjecucion = max_proceso;
+                String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                Proceso max_proceso = procesosPending.remove();
+                max_proceso.setEstado(EstadoProceso.RUNNING);
+                procesoEnEjecucion = max_proceso;
 
-                    writeLog("[" + timestamp + "]: EXECUTING PROCESS: PID=" + max_proceso.getPID() + " | USER:" + max_proceso.getUsuario().getAlias() + " UID:" + max_proceso.getUsuario().getUid());
+                writeLog("[" + timestamp + "]: EXECUTING PROCESS: PID=" + max_proceso.getPID() + " | USER:" + max_proceso.getUsuario().getAlias() + " UID:" + max_proceso.getUsuario().getUid());
 
-                    for (int i = 0; i < max_proceso.getEventos().size(); i++) {
-                        Evento event = max_proceso.getEventos().get(i);
-                        String instrucciones = "";
-                        for (int j = 0; j < event.getInstrucciones().size(); j++) {
-                            if (j > 0) instrucciones += ", ";
-                            instrucciones += event.getInstrucciones().get(j);
-                        }
-                        writeLog("  EVENT: " + event.getTipo() + " | Instructions [" + instrucciones + "]");
+                for (int i = 0; i < max_proceso.getEventos().size(); i++) {
+                    Evento event = max_proceso.getEventos().get(i);
+                    String instrucciones = "";
+                    for (int j = 0; j < event.getInstrucciones().size(); j++) {
+                        if (j > 0) instrucciones += ", ";
+                        instrucciones += event.getInstrucciones().get(j);
                     }
-                }  
+                    writeLog("  EVENT: " + event.getTipo() + " | Instructions [" + instrucciones + "]");
+                }
             } catch (EmptyHeapException e) {}
         }
     }
@@ -172,6 +174,7 @@ public class ProcessManagerImpl implements ProcessManager{
             return;
         }
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        procesoEnEjecucion.setEstado(EstadoProceso.FINISHED);
         procesosFinished.push(procesoEnEjecucion);
         writeLog("[" + timestamp + "]: ENDING PROCESS: PID=" + procesoEnEjecucion.getPID() + " | STATE: OK");
         procesoEnEjecucion = null;
