@@ -82,4 +82,3 @@ public class Proceso implements Comparable<Proceso>{
     }
     
 }
-

@@ -1,9 +1,11 @@
-package uy.edu.um.doors;
+ package uy.edu.um.doors;
 
 import lombok.Getter;
 import lombok.Setter;
 import uy.edu.um.tad.queue.EmptyQueueException;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -15,6 +17,7 @@ import uy.edu.um.tad.hash.MyHashImpl;
 import uy.edu.um.tad.heap.EmptyHeapException;
 import uy.edu.um.tad.heap.MyHeap;
 import uy.edu.um.tad.heap.MyHeapImpl;
+import uy.edu.um.tad.list.MyLinkedListImpl;
 import uy.edu.um.tad.list.MyList;
 import uy.edu.um.tad.queue.MyQueue;
 import uy.edu.um.tad.queue.MyQueueImpl;
@@ -120,7 +123,7 @@ public class ProcessManagerImpl implements ProcessManager{
                 }
 
                 procesosNew.enqueue(proceso);
-                hashPids.put(pid,proceso);
+                hashPids.put(pid, proceso);
                 System.out.println("Proceso cargado: PID=" + pid + " | " + nombre);
             }
         } catch (IOException e) {
@@ -146,9 +149,13 @@ public class ProcessManagerImpl implements ProcessManager{
     }
 
     @Override
-    public void executeNextProcess() { //queda en un loop infinito
-        try {
-            if (procesoEnEjecucion == null) {
+    public void executeNextProcess() {
+        if (procesoEnEjecucion != null) {
+            System.out.println("Ya hay un proceso en ejecucion: PID=" + procesoEnEjecucion.getPID());
+        } else if (procesosPending.isEmpty()) {
+            System.out.println("No hay procesos pendientes");
+        } else {
+            try {
                 String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
                 Proceso max_proceso = procesosPending.remove();
                 max_proceso.setEstado(EstadoProceso.RUNNING);
@@ -181,6 +188,7 @@ public class ProcessManagerImpl implements ProcessManager{
         procesosFinished.push(procesoEnEjecucion);
         writeLog("[" + timestamp + "]: ENDING PROCESS: PID=" + procesoEnEjecucion.getPID() + " | STATE: OK");
         procesoEnEjecucion = null;
+
     }
 
     @Override
@@ -318,7 +326,6 @@ public class ProcessManagerImpl implements ProcessManager{
         MyList<Evento> eventos = p.getEventos();
         for (int i = 0; i < eventos.size(); i++) {
             Evento e = eventos.get(i);
-            //PREGUNTAR SI SE PUEDE USAR STRING BUILDER
             StringBuilder instrucciones = new StringBuilder("[");
             MyList<String> instr = e.getInstrucciones();
             for (int j = 0; j < instr.size(); j++) {
@@ -339,9 +346,18 @@ public class ProcessManagerImpl implements ProcessManager{
 
     @Override
     public void printStatusByProcess(int pid) {
-        System.out.println("IMPLEMENTAR");
+        Proceso p = hashPids.get(pid);
+        if (p == null) {
+            System.out.println("No se encontró proceso con PID=" + pid);
+            return;
+        }
+        System.out.println("PID=" + p.getPID() + " | " + p.getNombre() 
+            + " | USER:" + p.getUsuario().getAlias() 
+            + " UID:" + p.getUsuario().getUid() 
+            + " | P=" + p.getPrioridad());
+        printEventos(p);
     }
-
+    
     private void writeLog(String mensaje) {
         String fecha = LocalDateTime.now()
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
