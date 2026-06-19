@@ -15,11 +15,10 @@ public class Proceso implements Comparable<Proceso>{
     private MyList<Evento> eventos;
 
     //constructor:
-    public Proceso(int PID, String nombre, Usuario usuario, MyList<Evento> eventos){
+    public Proceso(int PID, String nombre, Usuario usuario){
         this.PID = PID;
         this.nombre = nombre;
         this.usuario = usuario;
-        this.eventos = eventos;
         this.estado = EstadoProceso.NEW;
         this.prioridad = 0;//se calcula al pasar a PENDING con pprepare
         this.eventos = new MyLinkedListImpl<>();
