@@ -171,8 +171,8 @@ public class ProcessManagerImpl implements ProcessManager{
                     }
                     writeLog("  EVENT: " + event.getTipo() + " | Instructions [" + instrucciones + "]");
                 }
-            }
-        } catch (EmptyHeapException e) {}
+            }catch (EmptyHeapException e) {}
+        }
     }
 
     @Override
@@ -231,11 +231,12 @@ public class ProcessManagerImpl implements ProcessManager{
 
         //Mostrar el EXECUTING
         System.out.println("EXECUTING:");
-        Proceso proceso = procesoEnEjecucion;
-        System.out.print("        ");
-        System.out.println("PID=" + proceso.getPID() + " | " + proceso.getNombre() + " | " + "USER:" +
-                proceso.getUsuario().getAlias() + " UID:" + proceso.getUsuario().getUid() + " | " + "P=" + proceso.getPrioridad());
-
+        if (procesoEnEjecucion!=null) {
+            Proceso proceso = procesoEnEjecucion;
+            System.out.print("        ");
+            System.out.println("PID=" + proceso.getPID() + " | " + proceso.getNombre() + " | " + "USER:" +
+                    proceso.getUsuario().getAlias() + " UID:" + proceso.getUsuario().getUid() + " | " + "P=" + proceso.getPrioridad());
+        }else System.out.println("no hay un proceso ejecutandose");
         //Mostrar el heap de PENDING
         System.out.println("PENDING:");
         MyHeap<Proceso> heapAux = new MyHeapImpl<>(false);
@@ -279,10 +280,12 @@ public class ProcessManagerImpl implements ProcessManager{
 
         // EXECUTING
         System.out.println("EXECUTING:");
-        Proceso p = procesoEnEjecucion;
-        System.out.print("        ");
-        System.out.println("PID=" + p.getPID() + " | " + p.getNombre() + " | " + "USER:" + p.getUsuario().getAlias() + " UID:" + p.getUsuario().getUid() + " | " + "P=" + p.getPrioridad());
-        printEventos(p);
+        if (procesoEnEjecucion!=null) {
+            Proceso p = procesoEnEjecucion;
+            System.out.print("        ");
+            System.out.println("PID=" + p.getPID() + " | " + p.getNombre() + " | " + "USER:" + p.getUsuario().getAlias() + " UID:" + p.getUsuario().getUid() + " | " + "P=" + p.getPrioridad());
+            printEventos(p);
+        }else System.out.println("no hay un proceso ejecutandose");
 
         // PENDING
         System.out.println("PENDING:");
@@ -293,6 +296,7 @@ public class ProcessManagerImpl implements ProcessManager{
                 System.out.print("        ");
                 System.out.println("PID=" + proc.getPID() + " | " + proc.getNombre() + " | USER:" + proc.getUsuario().getAlias() + " UID:" + proc.getUsuario().getUid() + " | " + "P=" + proc.getPrioridad());
                 printEventos(proc);
+                System.out.println();
                 heapAux.insert(proc);
             }
             while(!heapAux.isEmpty()){
