@@ -19,9 +19,9 @@ public class Proceso implements Comparable<Proceso>{
         this.PID = PID;
         this.nombre = nombre;
         this.usuario = usuario;
+        this.eventos = new MyLinkedListImpl<>();
         this.estado = EstadoProceso.NEW;
         this.prioridad = 0;//se calcula al pasar a PENDING con pprepare
-        this.eventos = new MyLinkedListImpl<>();
     }
 
     //setters:
@@ -78,8 +78,7 @@ public class Proceso implements Comparable<Proceso>{
 
     @Override
     public int compareTo(Proceso otro) {
-        return Integer.compare(otro.getPrioridad(), this.getPrioridad());
+        return Integer.compare(this.getPrioridad(), otro.getPrioridad());
     }
     
 }
-
