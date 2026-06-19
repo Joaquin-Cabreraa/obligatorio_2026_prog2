@@ -146,7 +146,7 @@ public class ProcessManagerImpl implements ProcessManager{
     }
 
     @Override
-    public void executeNextProcess() { //queda en un loop infinito
+    public void executeNextProcess() {
         try {
             if (procesoEnEjecucion == null) {
                 String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
@@ -316,14 +316,15 @@ public class ProcessManagerImpl implements ProcessManager{
 
     private void printEventos(Proceso p) {
         MyList<Evento> eventos = p.getEventos();
-        for (int i = 0; i < eventos.size(); i++) {
+        int eventosSize = eventos.size();
+        for (int i = 0; i < eventosSize; i++) {
             Evento e = eventos.get(i);
-            //PREGUNTAR SI SE PUEDE USAR STRING BUILDER
             StringBuilder instrucciones = new StringBuilder("[");
             MyList<String> instr = e.getInstrucciones();
-            for (int j = 0; j < instr.size(); j++) {
+            int instrSize = instr.size();
+            for (int j = 0; j < instrSize; j++) {
                 instrucciones.append(instr.get(j));
-                if (j < instr.size() - 1) {
+                if (j < instrSize - 1) {
                     instrucciones.append(", ");
                 }
             }
