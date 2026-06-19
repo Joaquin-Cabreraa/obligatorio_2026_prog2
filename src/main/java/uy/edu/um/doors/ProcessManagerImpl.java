@@ -1,10 +1,9 @@
- package uy.edu.um.doors;
+package uy.edu.um.doors;
 
 import lombok.Getter;
 import lombok.Setter;
 import uy.edu.um.tad.queue.EmptyQueueException;
-import java.io.BufferedReader;
-import java.io.FileReader;
+
 import java.io.FileWriter;
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -16,7 +15,6 @@ import uy.edu.um.tad.hash.MyHashImpl;
 import uy.edu.um.tad.heap.EmptyHeapException;
 import uy.edu.um.tad.heap.MyHeap;
 import uy.edu.um.tad.heap.MyHeapImpl;
-import uy.edu.um.tad.list.MyLinkedListImpl;
 import uy.edu.um.tad.list.MyList;
 import uy.edu.um.tad.queue.MyQueue;
 import uy.edu.um.tad.queue.MyQueueImpl;
@@ -122,7 +120,7 @@ public class ProcessManagerImpl implements ProcessManager{
                 }
 
                 procesosNew.enqueue(proceso);
-                hashPids.put(pid, proceso);
+                hashPids.put(pid,proceso);
                 System.out.println("Proceso cargado: PID=" + pid + " | " + nombre);
             }
         } catch (IOException e) {
@@ -327,13 +325,15 @@ public class ProcessManagerImpl implements ProcessManager{
 
     private void printEventos(Proceso p) {
         MyList<Evento> eventos = p.getEventos();
-        for (int i = 0; i < eventos.size(); i++) {
+        int eventosSize = eventos.size();
+        for (int i = 0; i < eventosSize; i++) {
             Evento e = eventos.get(i);
             StringBuilder instrucciones = new StringBuilder("[");
             MyList<String> instr = e.getInstrucciones();
-            for (int j = 0; j < instr.size(); j++) {
+            int instrSize = instr.size();
+            for (int j = 0; j < instrSize; j++) {
                 instrucciones.append(instr.get(j));
-                if (j < instr.size() - 1) {
+                if (j < instrSize - 1) {
                     instrucciones.append(", ");
                 }
             }
@@ -396,14 +396,14 @@ public class ProcessManagerImpl implements ProcessManager{
             System.out.println("No se encontró proceso con PID=" + pid);
             return;
         }
-        System.out.println("PID=" + p.getPID() + " | " + p.getNombre() 
-            + " | USER:" + p.getUsuario().getAlias() 
-            + " UID:" + p.getUsuario().getUid() 
+        System.out.println("PID=" + p.getPID() + " | " + p.getNombre()
+            + " | USER:" + p.getUsuario().getAlias()
+            + " UID:" + p.getUsuario().getUid()
             + " | P=" + p.getPrioridad());
         printEventos(p);
     }
 
-    
+
     private void writeLog(String mensaje) {
         String fecha = LocalDateTime.now()
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
