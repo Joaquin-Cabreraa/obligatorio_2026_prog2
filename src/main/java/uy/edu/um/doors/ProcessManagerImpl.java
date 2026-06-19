@@ -3,7 +3,6 @@
 import lombok.Getter;
 import lombok.Setter;
 import uy.edu.um.tad.queue.EmptyQueueException;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -341,7 +340,49 @@ public class ProcessManagerImpl implements ProcessManager{
 
     @Override
     public void printStatusByUser(int uid) {
-        System.out.println("IMPLEMENTAR");
+        // Verificar que el usuario existe
+        if (!usuarios.contains(uid)) {
+            System.out.println("Usuario con UID " + uid + " no encontrado.");
+            return;
+        }
+        System.out.println("PROCESS STATUS - USER UID:" + uid);
+        // EXECUTING
+        System.out.println("EXECUTING:");
+        if (procesoEnEjecucion != null && procesoEnEjecucion.getUsuario().getUid() == uid) {
+            Proceso p = procesoEnEjecucion;
+            System.out.println("        PID=" + p.getPID() + " | " + p.getNombre() + " | USER:" + p.getUsuario().getAlias() + " UID:" + p.getUsuario().getUid() + " | P=" + p.getPrioridad());
+        }
+
+        // PENDING
+        System.out.println("PENDING:");
+        MyHeap<Proceso> heapAux = new MyHeapImpl<>(false);
+        try {
+            while (!procesosPending.isEmpty()) {
+                Proceso p = procesosPending.remove();
+                if (p.getUsuario().getUid() == uid) {
+                    System.out.println("        PID=" + p.getPID() + " | " + p.getNombre() + " | USER:" + p.getUsuario().getAlias() + " UID:" + p.getUsuario().getUid() + " | P=" + p.getPrioridad());
+                }
+                heapAux.insert(p);
+            }
+            while (!heapAux.isEmpty()) {
+                procesosPending.insert(heapAux.remove());
+            }
+        } catch (EmptyHeapException e) {}
+        // FINISHED
+        System.out.println("FINISHED:");
+        MyStack<Proceso> stackAux = new MyStackImpl<>();
+        try {
+            while (!procesosFinished.isEmpty()) {
+                Proceso p = procesosFinished.pop();
+                if (p.getUsuario().getUid() == uid) {
+                    System.out.println("        PID=" + p.getPID() + " | " + p.getNombre() + " | STATE: " + p.getEstado() + " | USER:" + p.getUsuario().getAlias() + " UID:" + p.getUsuario().getUid());
+                }
+                stackAux.push(p);
+            }
+            while (!stackAux.isEmpty()) {
+                procesosFinished.push(stackAux.pop());
+            }
+        } catch (EmptyStackException e) {}
     }
 
     @Override
@@ -357,6 +398,7 @@ public class ProcessManagerImpl implements ProcessManager{
             + " | P=" + p.getPrioridad());
         printEventos(p);
     }
+
     
     private void writeLog(String mensaje) {
         String fecha = LocalDateTime.now()
